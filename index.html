@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Special Mission</title>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --pink: #ff4d94;
+            --neon: #ff0055;
+            --dark: #050505;
+            --glass: rgba(255, 255, 255, 0.05);
+        }
+ 
+        * { 
+            margin: 0; padding: 0; box-sizing: border-box; 
+            font-family: 'Poppins', sans-serif; 
+            -webkit-tap-highlight-color: transparent !important;
+            user-select: none;
+            outline: none;
+            touch-action: manipulation;
+        }
+ 
+        body {
+            background-color: var(--dark);
+            color: white;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            width: 100vw;
+            position: relative;
+        }
+ 
+        #canvas-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.6;
+        }
+ 
+        .container {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            width: 90%;
+            max-width: 400px;
+            padding: 40px 25px;
+            border-radius: 30px;
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 77, 148, 0.15);
+            box-shadow: 0 0 50px rgba(0,0,0,0.8), inset 0 0 20px rgba(255, 77, 148, 0.05);
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+            display: none;
+        }
+ 
+        .container.active {
+            opacity: 1;
+            transform: translateY(0);
+            display: block;
+        }
+ 
+        h1 { 
+            font-family: 'Dancing Script', cursive; 
+            color: var(--pink); 
+            font-size: 2.8rem; 
+            margin-bottom: 15px; 
+            text-shadow: 0 0 10px rgba(255, 77, 148, 0.5);
+        }
+ 
+        p { 
+            font-size: 0.95rem; 
+            color: #ddd; 
+            margin-bottom: 25px; 
+            letter-spacing: 0.5px;
+        }
+ 
+        input {
+            width: 100%;
+            padding: 18px;
+            border-radius: 50px;
+            border: 2px solid rgba(255, 77, 148, 0.3);
+            background: rgba(0, 0, 0, 0.3);
+            color: white;
+            text-align: center;
+            margin-bottom: 25px;
+            font-size: 1.1rem;
+            transition: 0.3s;
+        }
+ 
+        input:focus {
+            border-color: var(--pink);
+            box-shadow: 0 0 15px rgba(255, 77, 148, 0.3);
+        }
+ 
+        .main-btn {
+            background: linear-gradient(45deg, var(--neon), var(--pink));
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: 0.4s;
+            box-shadow: 0 5px 20px rgba(255, 0, 85, 0.4);
+            letter-spacing: 1px;
+            width: 100%;
+        }
+ 
+        .main-btn:active { transform: scale(0.95); }
+ 
+        .heart-wrapper {
+            position: relative;
+            width: 200px;
+            height: 180px;
+            margin: 20px auto;
+            cursor: pointer;
+            filter: drop-shadow(0 0 20px rgba(255, 77, 148, 0.2));
+            transition: transform 0.1s;
+        }
+ 
+        .heart-wrapper:active { transform: scale(0.9); }
+        
+        .heart-shape {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.1);
+            clip-path: path('M100,15.7C116.3-4.1,151.2-5,170.5,13.9s18.1,51.8,0,76.5C151.2,115.1,100,150,100,150s-51.2-34.9-70.5-59.6 c-18.1-24.7-19.4-57.6,0-76.5S83.7-4.1,100,15.7z');
+        }
+ 
+        #heart-fill {
+            background: linear-gradient(to top, var(--neon), var(--pink));
+            height: 0%;
+            bottom: 0;
+            transition: height 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 1;
+        }
+ 
+        .secret-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 70%;
+            font-size: 6px;
+            color: rgba(0, 0, 0, 0.03); 
+            line-height: 1.2;
+            pointer-events: none;
+            z-index: 2;
+            text-align: center;
+            font-weight: bold;
+        }
+ 
+        #piano-game {
+            height: 320px;
+            background: rgba(0,0,0,0.2);
+            position: relative;
+            overflow: hidden;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 77, 148, 0.1);
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+            touch-action: none;
+        }
+ 
+        .falling-love {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 40px;
+            cursor: pointer;
+            filter: drop-shadow(0 0 10px var(--pink));
+            animation: fall 3s linear forwards;
+            z-index: 20;
+            -webkit-user-drag: none;
+        }
+ 
+        @keyframes fall { from { top: -90px; } to { top: 350px; } }
+ 
+        .pop-effect {
+            animation: pop 0.3s ease-out forwards;
+        }
+ 
+        @keyframes pop {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(2); opacity: 0; }
+        }
+ 
+        #catcher-game { 
+            height: 280px; 
+            position: relative; 
+            overflow: hidden;
+            background: rgba(0,0,0,0.2);
+            border-radius: 20px;
+            border: 1px dashed rgba(255, 77, 148, 0.3);
+        }
+ 
+        .moving-love { 
+            position: absolute; 
+            width: 70px;
+            height: 70px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 38px;
+            cursor: pointer; 
+            filter: drop-shadow(0 0 15px var(--pink));
+            transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+ 
+        .wa-btn { 
+            margin: 8px 0; 
+            width: 100%; 
+            font-size: 0.9rem;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--pink);
+            box-shadow: none;
+        }
+        
+        .wa-btn:hover { background: var(--pink); }
+ 
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            margin-top: 15px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: var(--pink);
+            width: 0%;
+            transition: width 0.3s;
+            box-shadow: 0 0 10px var(--pink);
+        }
+ 
+        #screen-final h1 { font-size: 2rem; }
+    </style>
+</head>
+<body>
+    <canvas id="canvas-bg"></canvas>
+ 
+    <div id="screen-intro" class="container active">
+        <h1>Hey You...</h1>
+        <p>Before we start, tell me your name?</p>
+        <input type="text" id="input-name" placeholder="Your beautiful name..." autocomplete="off">
+        <button class="main-btn" onclick="startJourney()">Start Mission</button>
+    </div>
+ 
+    <div id="screen-lv1" class="container">
+        <p>Mission 1</p>
+        <h3>Fill my heart with your touch</h3>
+        <div class="heart-wrapper" onclick="fillHeart()">
+            <div class="heart-shape"></div>
+            <div id="heart-fill" class="heart-shape"></div>
+            <div class="secret-text">aku sebenernya suka sama kamu dari waktu pertama kali naik kelas 2</div>
+        </div>
+        <div class="progress-bar"><div id="lv1-bar" class="progress-fill"></div></div>
+    </div>
+ 
+    <div id="screen-lv2" class="container">
+        <p>Mission 2</p>
+        <h3>Catch 10 Falling Hearts!</h3>
+        <div id="piano-game"></div>
+        <div class="progress-bar"><div id="lv2-bar" class="progress-fill"></div></div>
+    </div>
+ 
+    <div id="screen-lv3" class="container">
+        <p>Final Mission</p>
+        <h3>Catch me if you can 😜</h3>
+        <div id="catcher-game">
+            <div id="target-love" class="moving-love" onpointerdown="catchLove()">💖</div>
+        </div>
+        <p style="margin-top:15px">Remaining: <span id="catch-count">5</span></p>
+    </div>
+ 
+    <div id="screen-final" class="container">
+        <h1 id="greeting">Congratulations!</h1>
+        <p>You completed all missions perfectly.<br>I have something for you.</p>
+        <div id="wa-links">
+            <button class="main-btn wa-btn" id="wa-1" onclick="countClick()">Open Reward (1/3)</button>
+            <button class="main-btn wa-btn hidden" id="wa-2" onclick="countClick()">Are you sure? (2/3)</button>
+            <button class="main-btn wa-btn hidden" id="wa-3" onclick="countClick()">Chat Me Now (3/3)</button>
+        </div>
+    </div>
+ 
+    <audio id="bg-music" loop>
+        <source src="https://cdn.pixabay.com/audio/2022/10/05/audio_6861d8502a.mp3" type="audio/mpeg">
+    </audio>
+ 
+    <script>
+        const canvas = document.getElementById('canvas-bg');
+        const ctx = canvas.getContext('2d');
+        let width, height;
+        let particles = [];
+ 
+        function resize() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+ 
+        class Particle {
+            constructor() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * height;
+                this.size = Math.random() * 3 + 1;
+                this.speedY = Math.random() * 0.5 + 0.2;
+                this.opacity = Math.random() * 0.5 + 0.1;
+                this.color = `rgba(255, 77, 148, ${this.opacity})`;
+            }
+            update() {
+                this.y -= this.speedY;
+                if (this.y < 0) this.y = height;
+            }
+            draw() {
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+ 
+        function initParticles() {
+            for (let i = 0; i < 50; i++) particles.push(new Particle());
+        }
+        
+        function animateParticles() {
+            ctx.clearRect(0, 0, width, height);
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+            requestAnimationFrame(animateParticles);
+        }
+        initParticles();
+        animateParticles();
+ 
+        let userName = "";
+        let audio = document.getElementById("bg-music");
+ 
+        function switchScreen(hideId, showId) {
+            const hideEl = document.getElementById(hideId);
+            const showEl = document.getElementById(showId);
+            hideEl.classList.remove('active');
+            setTimeout(() => {
+                hideEl.style.display = 'none';
+                showEl.classList.add('active');
+            }, 500);
+        }
+ 
+        function startJourney() {
+            const input = document.getElementById("input-name");
+            userName = input.value.trim();
+            if (!userName) {
+                input.style.borderColor = "red";
+                setTimeout(() => input.style.borderColor = "rgba(255,77,148,0.3)", 500);
+                return;
+            }
+            audio.volume = 0.5;
+            audio.play().catch(() => {});
+            switchScreen("screen-intro", "screen-lv1");
+        }
+ 
+        let fill = 0;
+        function fillHeart() {
+            fill += 8; 
+            if(fill > 100) fill = 100;
+            document.getElementById("heart-fill").style.height = fill + "%";
+            document.getElementById("lv1-bar").style.width = fill + "%";
+            
+            const wrapper = document.querySelector('.heart-wrapper');
+            wrapper.style.transform = "scale(0.95)";
+            setTimeout(() => wrapper.style.transform = "scale(1)", 100);
+ 
+            if (fill >= 100) {
+                setTimeout(() => { 
+                    switchScreen("screen-lv1", "screen-lv2"); 
+                    startPiano(); 
+                }, 800);
+            }
+        }
+ 
+        let score2 = 0;
+        function startPiano() {
+            const gameArea = document.getElementById("piano-game");
+            const lanes = [10, 35, 60, 85]; 
+            
+            let gameInterval = setInterval(() => {
+                if (score2 >= 10) {
+                    clearInterval(gameInterval);
+                    setTimeout(() => {
+                        switchScreen("screen-lv2", "screen-lv3");
+                        moveLove();
+                    }, 800);
+                    return;
+                }
+ 
+                const heart = document.createElement("div");
+                heart.className = "falling-love";
+                heart.innerHTML = "💗";
+                const randomLane = lanes[Math.floor(Math.random() * lanes.length)];
+                heart.style.left = `calc(${randomLane}% - 40px)`; 
+                
+                const handleHit = (e) => {
+                    e.preventDefault(); 
+                    e.stopPropagation();
+                    score2++;
+                    document.getElementById("lv2-bar").style.width = (score2 * 10) + "%";
+                    
+                    heart.innerText = "✨";
+                    heart.classList.add("pop-effect");
+                    
+                    setTimeout(() => heart.remove(), 300);
+                };
+ 
+                heart.onpointerdown = handleHit;
+                
+                gameArea.appendChild(heart);
+                
+                setTimeout(() => {
+                    if (heart.parentNode && !heart.classList.contains("pop-effect")) {
+                        heart.remove();
+                    }
+                }, 3000);
+            }, 800); 
+        }
+ 
+        let count3 = 5;
+        function moveLove() {
+            const target = document.getElementById("target-love");
+            const area = document.getElementById("catcher-game");
+            
+            const maxX = area.clientWidth - 70; 
+            const maxY = area.clientHeight - 70;
+            
+            const newX = Math.random() * maxX;
+            const newY = Math.random() * maxY;
+ 
+            target.style.left = newX + "px";
+            target.style.top = newY + "px";
+        }
+ 
+        function catchLove() {
+            count3--;
+            document.getElementById("catch-count").innerText = count3;
+            
+            const target = document.getElementById("target-love");
+            target.innerText = "💥";
+            setTimeout(() => target.innerText = "💖", 200);
+ 
+            if (count3 <= 0) {
+                document.getElementById("greeting").innerHTML = `Great job, ${userName}!<br>❤️`;
+                switchScreen("screen-lv3", "screen-final");
+            } else {
+                moveLove();
+            }
+        }
+        
+        setInterval(() => {
+            const lv3 = document.getElementById("screen-lv3");
+            if(lv3.classList.contains("active")) moveLove();
+        }, 700);
+ 
+        let clicks = 0;
+        function countClick() {
+            clicks++;
+            const btn1 = document.getElementById("wa-1");
+            const btn2 = document.getElementById("wa-2");
+            const btn3 = document.getElementById("wa-3");
+ 
+            if (clicks === 1) {
+                btn1.style.display = "none";
+                btn2.classList.remove("hidden");
+            } else if (clicks === 2) {
+                btn2.style.display = "none";
+                btn3.classList.remove("hidden");
+            } else if (clicks === 3) {
+                const pesan = encodeURIComponent("hii");
+                window.location.href = `https://wa.me/6285891160040?text=${pesan}`;
+            }
+        }
+    </script>
+</body>
+</html>
